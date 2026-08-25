@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PSEO — Egzaminy Obywatelskie | e-Prusy</title>
+<link rel="icon" href="assets/favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/styl.css">
+</head>
+<body>
+
+<header class="top">
+  <div class="top-in">
+    <button class="brand" onclick="location.href='index.html'"><img src="assets/logo.png" alt=""><b>e-<span>Prusy</span></b></button>
+    <nav class="nav">
+      <a href="index.html">Start</a>
+      <a href="pseo.html" class="on">Egzaminy</a>
+      <a href="ess.html">Sądownictwo</a>
+      <a href="admin.html" class="adm" id="nav-admin" hidden>Administracja</a>
+    </nav>
+    <div class="acct" id="acct"></div>
+  </div>
+</header>
+
+<main class="wrap section">
+  <div class="eyebrow">Pruski System Egzaminów Obywatelskich</div>
+  <h1 class="head">PSEO</h1>
+  <div class="circuit"></div>
+  <p class="lede">System egzaminów na obywatelstwo w rozgrywce. Egzamin składa się z części pisemnej, ustnej i ustawodawczej.</p>
+
+  <div class="tabs" id="tabs" role="tablist">
+    <button role="tab" data-t="przystap" aria-selected="true">Przystąp do egzaminu</button>
+    <button role="tab" data-t="wyniki" aria-selected="false">Wyniki egzaminu</button>
+    <button role="tab" data-t="admin" aria-selected="false" class="only-admin" hidden>Panel administratora</button>
+  </div>
+
+  <!-- PRZYSTĄP -->
+  <section class="pane on" id="pane-przystap"></section>
+  <!-- WYNIKI -->
+  <section class="pane" id="pane-wyniki"></section>
+  <!-- PANEL ADMINA -->
+  <section class="pane" id="pane-admin"></section>
+</main>
+
+<footer><div class="foot-in">
+  <div class="fb"><img src="assets/logo.png" alt=""><span>e-Prusy · PSEO</span></div>
+  <small>Progi zdania: pisemny 90% · ustny 60% · ustawodawczy 75%.</small>
+</div></footer>
+
+<script src="js/vendor/supabase.js"></script>
+<script src="config.js"></script>
+<script src="js/wspolne.js"></script>
+<script src="js/pseo.js"></script>
+</body>
+</html>

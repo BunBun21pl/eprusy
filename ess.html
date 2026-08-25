@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ESS — System Sądownictwa | e-Prusy</title>
+<link rel="icon" href="assets/favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/styl.css">
+</head>
+<body>
+
+<header class="top">
+  <div class="top-in">
+    <button class="brand" onclick="location.href='index.html'"><img src="assets/logo.png" alt=""><b>e-<span>Prusy</span></b></button>
+    <nav class="nav">
+      <a href="index.html">Start</a>
+      <a href="pseo.html">Egzaminy</a>
+      <a href="ess.html" class="on">Sądownictwo</a>
+      <a href="admin.html" class="adm" id="nav-admin" hidden>Administracja</a>
+    </nav>
+    <div class="acct" id="acct"></div>
+  </div>
+</header>
+
+<main class="wrap section">
+  <div class="eyebrow">Elektroniczny System Sądownictwa</div>
+  <h1 class="head">ESS</h1>
+  <div class="circuit"></div>
+  <p class="lede">Publiczny rejestr wyroków sądów Republiki Pruskiej. Sędziowie publikują orzeczenia z panelu sędziego.</p>
+
+  <div class="tabs" id="tabs" role="tablist">
+    <button role="tab" data-t="wyroki" aria-selected="true">Wyroki</button>
+    <button role="tab" data-t="sedzia" aria-selected="false" id="tab-sedzia" hidden>Panel sędziego</button>
+  </div>
+
+  <section class="pane on" id="pane-wyroki"></section>
+  <section class="pane" id="pane-sedzia"></section>
+</main>
+
+<footer><div class="foot-in">
+  <div class="fb"><img src="assets/logo.png" alt=""><span>e-Prusy · ESS</span></div>
+  <small>Rejestr wyroków na potrzeby rozgrywki.</small>
+</div></footer>
+
+<script src="js/vendor/supabase.js"></script>
+<script src="config.js"></script>
+<script src="js/wspolne.js"></script>
+<script src="js/ess.js"></script>
+</body>
+</html>

@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>System Administratora | e-Prusy</title>
+<link rel="icon" href="assets/favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/styl.css">
+</head>
+<body>
+
+<header class="top">
+  <div class="top-in">
+    <button class="brand" onclick="location.href='index.html'"><img src="assets/logo.png" alt=""><b>e-<span>Prusy</span></b></button>
+    <nav class="nav">
+      <a href="index.html">Start</a>
+      <a href="pseo.html">Egzaminy</a>
+      <a href="ess.html">Sądownictwo</a>
+      <a href="admin.html" class="on adm">Administracja</a>
+    </nav>
+    <div class="acct" id="acct"></div>
+  </div>
+</header>
+
+<main class="wrap section">
+  <div class="eyebrow">Panel administratora serwisu</div>
+  <h1 class="head">System Administratora</h1>
+  <div class="circuit"></div>
+  <p class="lede">Generuj klucze dostępu do rejestracji i nadawaj uprawnienia użytkownikom: administrator, administrator PSEO oraz sędzia z przypisanym sądem.</p>
+
+  <div class="tabs" id="tabs" role="tablist">
+    <button role="tab" data-t="klucze" aria-selected="true">Klucze rejestracji</button>
+    <button role="tab" data-t="uzytkownicy" aria-selected="false">Użytkownicy i uprawnienia</button>
+  </div>
+
+  <section class="pane on" id="pane-klucze"></section>
+  <section class="pane" id="pane-uzytkownicy"></section>
+</main>
+
+<footer><div class="foot-in">
+  <div class="fb"><img src="assets/logo.png" alt=""><span>e-Prusy · Administracja</span></div>
+  <small>Dostęp wyłącznie dla administratorów serwisu.</small>
+</div></footer>
+
+<script src="js/vendor/supabase.js"></script>
+<script src="config.js"></script>
+<script src="js/wspolne.js"></script>
+<script src="js/admin.js"></script>
+</body>
+</html>

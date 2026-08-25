@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>e-Prusy — portal Republiki Pruskiej</title>
+<link rel="icon" href="assets/favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/styl.css">
+</head>
+<body>
+
+<header class="top">
+  <div class="top-in">
+    <button class="brand" onclick="location.href='index.html'"><img src="assets/logo.png" alt=""><b>e-<span>Prusy</span></b></button>
+    <nav class="nav" id="nav"></nav>
+    <div class="acct" id="acct"></div>
+  </div>
+</header>
+
+<main>
+  <!-- powitanie / gość -->
+  <section class="wrap section" id="hero">
+    <div class="eyebrow">Republika Pruska</div>
+    <h1 class="head">Portal obywatela i gracza</h1>
+    <div class="circuit"></div>
+    <p class="lede">Elektroniczny system Republiki Pruskiej: konto gracza, Pruski System Egzaminów Obywatelskich oraz Elektroniczny System Sądownictwa. Zaloguj się, aby wybrać tryb pracy.</p>
+    <div id="hero-akcje" style="margin-top:26px"></div>
+  </section>
+
+  <!-- wybór trybu (po zalogowaniu) -->
+  <section class="wrap section" id="wybor" hidden>
+    <div class="eyebrow">Wybierz tryb</div>
+    <h1 class="head">Jak chcesz korzystać z portalu?</h1>
+    <div class="circuit"></div>
+    <div class="grid g2" style="margin-top:26px">
+      <button class="tile" id="tryb-gracz">
+        <div class="ic">▶</div>
+        <b>Tryb gracza</b>
+        <small>Twoje konto, Egzaminy Obywatelskie (PSEO) oraz System Administratora.</small>
+      </button>
+      <button class="tile" id="tryb-obywatel">
+        <div class="ic">◉</div>
+        <b>Tryb obywatela</b>
+        <small>Usługi jak w mObywatelu: dowód, paszport, sprawy urzędowe i System Sądownictwa.</small>
+      </button>
+    </div>
+  </section>
+
+  <!-- TRYB GRACZA -->
+  <section class="wrap section" id="panel-gracz" hidden>
+    <button class="btn ghost sm" data-powrot style="margin-bottom:18px">← Wybór trybu</button>
+    <div class="eyebrow">Tryb gracza</div>
+    <h1 class="head">Panel gracza</h1>
+    <div class="circuit"></div>
+
+    <div class="card" style="margin-top:24px" id="konto-karta"></div>
+
+    <div class="grid g2" style="margin-top:16px">
+      <a class="tile" href="pseo.html">
+        <div class="ic">✎</div>
+        <b>Egzaminy Obywatelskie</b>
+        <small>Pruski System Egzaminów Obywatelskich — przystąp do egzaminu i sprawdź wyniki.</small>
+      </a>
+      <a class="tile" href="admin.html" id="tile-admin">
+        <div class="ic">⚙</div>
+        <b>System Administratora</b>
+        <small>Zarządzanie kluczami dostępu i uprawnieniami użytkowników.</small>
+      </a>
+    </div>
+  </section>
+
+  <!-- TRYB OBYWATELA -->
+  <section class="wrap section" id="panel-obywatel" hidden>
+    <button class="btn ghost sm" data-powrot style="margin-bottom:18px">← Wybór trybu</button>
+    <div class="eyebrow">Tryb obywatela</div>
+    <h1 class="head">Twoje usługi</h1>
+    <div class="circuit"></div>
+    <p class="lede">Wybierz usługę. Dokumenty i dane są symulacją na potrzeby rozgrywki.</p>
+
+    <div class="tiles g3" style="margin-top:24px">
+      <button class="tile us" data-us="Sprawa urzędowa"><div class="ic">🗎</div><b>Sprawa urzędowa</b><small>Złóż i śledź pismo urzędowe.</small></button>
+      <button class="tile us" data-us="Dowód osobisty"><div class="ic">🪪</div><b>Dowód osobisty</b><small>Twój elektroniczny dowód.</small></button>
+      <button class="tile us" data-us="Paszport"><div class="ic">📕</div><b>Paszport</b><small>Dokument podróży.</small></button>
+      <button class="tile us" data-us="Prawo jazdy"><div class="ic">🚗</div><b>Prawo jazdy</b><small>Uprawnienia kierowcy.</small></button>
+      <button class="tile us" data-us="Rejestr pojazdów"><div class="ic">🚙</div><b>Pojazdy</b><small>Twoje pojazdy i ich status.</small></button>
+      <button class="tile us" data-us="Dane osobowe"><div class="ic">👤</div><b>Dane osobowe</b><small>Rejestr obywatela.</small></button>
+      <a class="tile" href="ess.html" style="grid-column:1/-1;border-color:var(--cyan)">
+        <div class="ic">⚖</div><b>Elektroniczny System Sądownictwa</b>
+        <small>Wyroki sądów Republiki Pruskiej oraz panel sędziego.</small>
+      </a>
+    </div>
+    <div id="us-msg"></div>
+  </section>
+</main>
+
+<footer><div class="foot-in">
+  <div class="fb"><img src="assets/logo.png" alt=""><span>e-Prusy · Republika Pruska</span></div>
+  <small>Portal na potrzeby rozgrywki (role-play). Dane są fikcyjne.</small>
+</div></footer>
+
+<script src="js/vendor/supabase.js"></script>
+<script src="config.js"></script>
+<script src="js/wspolne.js"></script>
+<script src="js/index.js"></script>
+</body>
+</html>
