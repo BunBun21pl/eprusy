@@ -114,22 +114,29 @@ W Systemie Administratora (`admin.html`, zakładka „Użytkownicy”) zaznaczas
 
 - **Administrator** — pełny dostęp, w tym nadawanie uprawnień innym.
 - **Admin PSEO** — zarządza Egzaminami Obywatelskimi (pytania, klucze, ocena).
+- **Prokurator** — może wnosić akty oskarżenia w Panelu prokuratora.
 - **Sędzia — sądy** — zaznaczasz (checkboxami) **wszystkie sądy**, w których dana
   osoba może wydawać wyroki: rejonowy, okręgowy, apelacyjny, wojskowy, najwyższy,
   Trybunał Konstytucyjny, Trybunał Stanu. Jedna osoba może orzekać w kilku sądach.
 
-## Sądownictwo (ESS)
+## Sądownictwo i prokuratura (ESS)
 
-Sędzia (użytkownik z przypisanymi sądami) wydaje wyroki z panelu sędziego. Formularz
-odwzorowuje wzór procesowy: sąd/trybunał (tylko te, do których ma uprawnienia),
-nazwa orzekającego sądu, miejscowość i data, sygnatura akt (z przyciskiem
-„Generuj sygnaturę”), przedmiot sprawy, strony, status orzeczenia, skład orzekający,
-**sentencja rozbita na numerowane punkty** (przycisk „Dodaj punkt”) oraz osobne
-**uzasadnienie**. Każdy wyrok publikowany jest **w imieniu Republiki Pruskiej**.
+Moduł ma cztery zakładki, z osobną kolorystyką dla sądownictwa (złota) i
+prokuratury (bordowa):
 
-Na stronie głównej modułu wyroki są pogrupowane: sądy powszechne (rejonowy,
-okręgowy, wojskowy), sądy apelacyjne, Sąd Najwyższy, Trybunał Konstytucyjny i
-Trybunał Stanu. Wyroki czyta każdy, także niezalogowany.
+- **Wyroki** — publiczny rejestr wyroków, pogrupowany: sądy powszechne (rejonowy,
+  okręgowy, wojskowy), apelacyjne, Sąd Najwyższy, Trybunał Konstytucyjny, Trybunał
+  Stanu. Czyta każdy, także niezalogowany.
+- **Prokuratura** — publiczny rejestr aktów oskarżenia, pogrupowany według sądu,
+  do którego akt jest kierowany.
+- **Panel sędziego** (dla sędziów) — formularz wyroku według wzoru procesowego:
+  sąd/trybunał (tylko te, do których sędzia ma uprawnienia), nazwa sądu, miejscowość,
+  data, sygnatura (z przyciskiem „Generuj sygnaturę”), przedmiot, strony, status,
+  skład orzekający, **sentencja w numerowanych punktach** i osobne **uzasadnienie**.
+  Każdy wyrok wydawany jest **w imieniu Republiki Pruskiej**.
+- **Panel prokuratora** (dla prokuratorów) — formularz aktu oskarżenia: sąd, do
+  którego kierowany, prokuratura, miejscowość, data, sygnatura, oskarżony,
+  pokrzywdzony, **zarzuty w numerowanych punktach**, uzasadnienie i wnioski końcowe.
 
 ## Egzaminy (PSEO)
 

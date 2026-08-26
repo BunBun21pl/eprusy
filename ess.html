@@ -32,12 +32,16 @@
   <p class="lede">Publiczny rejestr wyroków sądów Republiki Pruskiej. Sędziowie publikują orzeczenia z panelu sędziego.</p>
 
   <div class="tabs" id="tabs" role="tablist">
-    <button role="tab" data-t="wyroki" aria-selected="true">Wyroki</button>
-    <button role="tab" data-t="sedzia" aria-selected="false" id="tab-sedzia" hidden>Panel sędziego</button>
+    <button role="tab" data-t="wyroki" aria-selected="true" class="tab-sedzia">Wyroki</button>
+    <button role="tab" data-t="prokuratura" aria-selected="false" class="tab-prok">Prokuratura</button>
+    <button role="tab" data-t="sedzia" aria-selected="false" class="tab-sedzia" id="tab-sedzia" hidden>Panel sędziego</button>
+    <button role="tab" data-t="prok" aria-selected="false" class="tab-prok" id="tab-prok" hidden>Panel prokuratora</button>
   </div>
 
-  <section class="pane on" id="pane-wyroki"></section>
-  <section class="pane" id="pane-sedzia"></section>
+  <section class="pane on t-sedzia" id="pane-wyroki"></section>
+  <section class="pane t-prok" id="pane-prokuratura"></section>
+  <section class="pane t-sedzia" id="pane-sedzia"></section>
+  <section class="pane t-prok" id="pane-prok"></section>
 </main>
 
 <footer><div class="foot-in">

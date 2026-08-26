@@ -24,6 +24,7 @@ create table if not exists public.profil (
   pni           text,                       -- publiczny numer identyfikacyjny (nadawany po rejestracji)
   admin_serwisu boolean not null default false,
   pseo_admin    boolean not null default false,
+  prokurator    boolean not null default false,      -- może wnosić akty oskarżenia
   sad           public.sad,                 -- (dawne, pojedyncze — pozostawione dla zgodności)
   sady          public.sad[] not null default '{}',   -- sądy, w których może orzekać
   utworzono     timestamptz not null default now()
@@ -31,6 +32,7 @@ create table if not exists public.profil (
 
 -- Gdyby tabela istniała bez kolumny sady — dołóż ją i przenieś stare uprawnienie.
 alter table public.profil add column if not exists sady public.sad[] not null default '{}';
+alter table public.profil add column if not exists prokurator boolean not null default false;
 update public.profil set sady = array[sad]
   where sad is not null and (sady is null or sady = '{}');
 
@@ -109,6 +111,10 @@ as $$ select coalesce((select sady from public.profil where id = auth.uid()), '{
 create or replace function public.czy_sedzia_sadu(s public.sad)
 returns boolean language sql stable security definer set search_path = public
 as $$ select coalesce((select s = any(sady) from public.profil where id = auth.uid()), false) $$;
+
+create or replace function public.czy_prokuratorem()
+returns boolean language sql stable security definer set search_path = public
+as $$ select coalesce((select prokurator or admin_serwisu from public.profil where id = auth.uid()), false) $$;
 
 -- Walidacja klucza rejestracji BEZ ujawniania listy kluczy.
 -- Zwraca: 'pierwszy' | 'ok' | 'zajety' | 'zly'
@@ -241,6 +247,25 @@ alter table public.ess_wyrok add column if not exists uzasadnienie text;
 alter table public.ess_wyrok alter column tytul drop not null;
 alter table public.ess_wyrok alter column tresc set default '';
 
+-- ---------- 7b. ESS: akty oskarżenia (prokuratura) ----------
+create table if not exists public.ess_akt (
+  id             uuid primary key default gen_random_uuid(),
+  sad            public.sad not null,          -- sąd, do którego kierowany akt (grupowanie)
+  prokuratura    text,                          -- np. „Prokuratura Rejonowa w Królewcu”
+  miejscowosc    text,
+  data_aktu      text,
+  sygnatura      text,
+  oskarzony      text,                          -- oskarżony/oskarżeni
+  pokrzywdzony   text,
+  zarzuty        jsonb not null default '[]'::jsonb,  -- lista zarzutów (punkty)
+  uzasadnienie   text,
+  wnioski        text,                          -- wnioski końcowe (dowodowe, o karę)
+  prokurator     uuid references public.profil(id) on delete set null,
+  prokurator_imie text,
+  utworzono      timestamptz not null default now()
+);
+create index if not exists idx_akt_sad on public.ess_akt (sad, utworzono desc);
+
 -- ============================================================
 --  8. Ochrona wierszy (RLS)
 -- ============================================================
@@ -250,6 +275,7 @@ alter table public.pseo_pytanie      enable row level security;
 alter table public.pseo_klucz        enable row level security;
 alter table public.pseo_egzamin      enable row level security;
 alter table public.ess_wyrok         enable row level security;
+alter table public.ess_akt           enable row level security;
 
 -- Profil: każdy zalogowany widzi listę (potrzebne panelom). Sam zmienia imię,
 -- uprawnienia zmienia wyłącznie admin serwisu.
@@ -262,6 +288,7 @@ create policy profil_ja on public.profil for update to authenticated
   with check (id = auth.uid()
     and admin_serwisu = (select admin_serwisu from public.profil where id = auth.uid())
     and pseo_admin   = (select pseo_admin   from public.profil where id = auth.uid())
+    and prokurator   = (select prokurator   from public.profil where id = auth.uid())
     and sady is not distinct from (select sady from public.profil where id = auth.uid()));
 
 drop policy if exists profil_admin on public.profil;
@@ -316,6 +343,23 @@ create policy wyrok_edycja on public.ess_wyrok for update to authenticated
 drop policy if exists wyrok_usun on public.ess_wyrok;
 create policy wyrok_usun on public.ess_wyrok for delete to authenticated
   using (public.jestem_adminem() or sedzia = auth.uid());
+
+-- Akty oskarżenia: czyta każdy. Wnosi prokurator (lub admin). Autor/admin edytuje i usuwa.
+drop policy if exists akt_odczyt on public.ess_akt;
+create policy akt_odczyt on public.ess_akt for select to anon, authenticated using (true);
+
+drop policy if exists akt_prok on public.ess_akt;
+create policy akt_prok on public.ess_akt for insert to authenticated
+  with check (public.czy_prokuratorem());
+
+drop policy if exists akt_edycja on public.ess_akt;
+create policy akt_edycja on public.ess_akt for update to authenticated
+  using (public.jestem_adminem() or prokurator = auth.uid())
+  with check (public.jestem_adminem() or prokurator = auth.uid());
+
+drop policy if exists akt_usun on public.ess_akt;
+create policy akt_usun on public.ess_akt for delete to authenticated
+  using (public.jestem_adminem() or prokurator = auth.uid());
 
 -- ============================================================
 --  Gdyby trzeba było ręcznie nadać sobie administratora:

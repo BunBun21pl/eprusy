@@ -72,6 +72,7 @@
       imie: (p && p.imie) || (u.user.email || '').split('@')[0],
       pni: p && p.pni, admin: !!(p && p.admin_serwisu),
       pseoAdmin: !!(p && (p.pseo_admin || p.admin_serwisu)),
+      prokurator: !!(p && p.prokurator),
       sady: (p && p.sady) || []
     };
   }
@@ -82,6 +83,7 @@
   E.jestAdmin = () => !!(E.ja && E.ja.admin);
   E.jestPseoAdmin = () => !!(E.ja && E.ja.pseoAdmin);
   E.jestSedzia = () => !!(E.ja && E.ja.sady && E.ja.sady.length);
+  E.jestProkurator = () => !!(E.ja && (E.ja.prokurator || E.ja.admin));
 
   /* ============================================================
      UI: pasek konta w nagłówku
@@ -96,7 +98,8 @@
     const j = E.ja;
     const tagiSad = (j.sady || []).map(s => '<span class="tag sedzia">' + esc(NAZWY_SADOW[s] || 'Sędzia') + '</span>').join('');
     const tagi = (j.admin ? '<span class="tag admin">Administrator</span>' : '') +
-      (j.pseoAdmin && !j.admin ? '<span class="tag pseo">Admin PSEO</span>' : '') + tagiSad;
+      (j.pseoAdmin && !j.admin ? '<span class="tag pseo">Admin PSEO</span>' : '') +
+      (j.prokurator ? '<span class="tag prok">Prokurator</span>' : '') + tagiSad;
     box.innerHTML =
       '<button class="acct-btn" id="ep-acct"><span class="av">' + esc(inicjaly(j.imie)) + '</span>' +
       '<span>' + esc((j.imie || '').split(' ')[0] || 'Konto') + '</span></button>' +
