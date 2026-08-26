@@ -16,7 +16,7 @@ exception when duplicate_object then null; end $$;
 -- ---------- 2. Profil ----------
 -- admin_serwisu  — pełny administrator (System Administratora, nadaje uprawnienia)
 -- pseo_admin     — administrator Egzaminów Obywatelskich
--- sad            — jeśli ustawione, użytkownik jest sędzią danego sądu
+-- sady           — lista sądów, w których użytkownik może wydawać wyroki (pusta = nie jest sędzią)
 create table if not exists public.profil (
   id            uuid primary key references auth.users on delete cascade,
   email         text,
@@ -24,9 +24,15 @@ create table if not exists public.profil (
   pni           text,                       -- publiczny numer identyfikacyjny (nadawany po rejestracji)
   admin_serwisu boolean not null default false,
   pseo_admin    boolean not null default false,
-  sad           public.sad,                 -- null = nie jest sędzią
+  sad           public.sad,                 -- (dawne, pojedyncze — pozostawione dla zgodności)
+  sady          public.sad[] not null default '{}',   -- sądy, w których może orzekać
   utworzono     timestamptz not null default now()
 );
+
+-- Gdyby tabela istniała bez kolumny sady — dołóż ją i przenieś stare uprawnienie.
+alter table public.profil add column if not exists sady public.sad[] not null default '{}';
+update public.profil set sady = array[sad]
+  where sad is not null and (sady is null or sady = '{}');
 
 -- ---------- 3. Klucze rejestracji (PNI) ----------
 create table if not exists public.klucz_rejestracji (
@@ -96,9 +102,13 @@ create or replace function public.jestem_pseo_adminem()
 returns boolean language sql stable security definer set search_path = public
 as $$ select coalesce((select pseo_admin or admin_serwisu from public.profil where id = auth.uid()), false) $$;
 
-create or replace function public.moj_sad()
-returns public.sad language sql stable security definer set search_path = public
-as $$ select sad from public.profil where id = auth.uid() $$;
+create or replace function public.moje_sady()
+returns public.sad[] language sql stable security definer set search_path = public
+as $$ select coalesce((select sady from public.profil where id = auth.uid()), '{}') $$;
+
+create or replace function public.czy_sedzia_sadu(s public.sad)
+returns boolean language sql stable security definer set search_path = public
+as $$ select coalesce((select s = any(sady) from public.profil where id = auth.uid()), false) $$;
 
 -- Walidacja klucza rejestracji BEZ ujawniania listy kluczy.
 -- Zwraca: 'pierwszy' | 'ok' | 'zajety' | 'zly'
@@ -198,19 +208,38 @@ begin
 end $$;
 
 -- ---------- 7. ESS: wyroki ----------
+-- Każdy wyrok wydawany jest „w imieniu Republiki Pruskiej”.
 create table if not exists public.ess_wyrok (
-  id         uuid primary key default gen_random_uuid(),
-  sad        public.sad not null,
-  sygnatura  text,
-  tytul      text not null,
-  tresc      text not null default '',
-  strony     text,
-  sedzia     uuid references public.profil(id) on delete set null,
-  sedzia_imie text,
-  data_wyroku text,
-  utworzono  timestamptz not null default now()
+  id           uuid primary key default gen_random_uuid(),
+  sad          public.sad not null,          -- kategoria sądu (do grupowania)
+  nazwa_sadu   text,                          -- pełna nazwa, np. „Sąd Okręgowy w Królewcu”
+  miejscowosc  text,
+  sygnatura    text,
+  przedmiot    text,                          -- przedmiot sprawy (tytuł)
+  strony       text,                          -- strony / uczestnicy
+  status       text not null default 'prawomocny',
+  sklad        text,                          -- skład orzekający
+  sentencja    jsonb not null default '[]'::jsonb,  -- lista punktów rozstrzygnięcia
+  uzasadnienie text,
+  tytul        text,                          -- (dawne pole — pozostawione dla zgodności)
+  tresc        text,                          -- (dawne pole — pozostawione dla zgodności)
+  sedzia       uuid references public.profil(id) on delete set null,
+  sedzia_imie  text,
+  data_wyroku  text,
+  utworzono    timestamptz not null default now()
 );
 create index if not exists idx_wyrok_sad on public.ess_wyrok (sad, utworzono desc);
+
+-- Dołożenie kolumn, gdyby tabela istniała w starszej wersji.
+alter table public.ess_wyrok add column if not exists nazwa_sadu   text;
+alter table public.ess_wyrok add column if not exists miejscowosc  text;
+alter table public.ess_wyrok add column if not exists przedmiot    text;
+alter table public.ess_wyrok add column if not exists status       text not null default 'prawomocny';
+alter table public.ess_wyrok add column if not exists sklad        text;
+alter table public.ess_wyrok add column if not exists sentencja    jsonb not null default '[]'::jsonb;
+alter table public.ess_wyrok add column if not exists uzasadnienie text;
+alter table public.ess_wyrok alter column tytul drop not null;
+alter table public.ess_wyrok alter column tresc set default '';
 
 -- ============================================================
 --  8. Ochrona wierszy (RLS)
@@ -233,7 +262,7 @@ create policy profil_ja on public.profil for update to authenticated
   with check (id = auth.uid()
     and admin_serwisu = (select admin_serwisu from public.profil where id = auth.uid())
     and pseo_admin   = (select pseo_admin   from public.profil where id = auth.uid())
-    and sad is not distinct from (select sad from public.profil where id = auth.uid()));
+    and sady is not distinct from (select sady from public.profil where id = auth.uid()));
 
 drop policy if exists profil_admin on public.profil;
 create policy profil_admin on public.profil for update to authenticated
@@ -277,7 +306,7 @@ create policy wyrok_odczyt on public.ess_wyrok for select to anon, authenticated
 
 drop policy if exists wyrok_sedzia on public.ess_wyrok;
 create policy wyrok_sedzia on public.ess_wyrok for insert to authenticated
-  with check (public.jestem_adminem() or public.moj_sad() = sad);
+  with check (public.jestem_adminem() or public.czy_sedzia_sadu(sad));
 
 drop policy if exists wyrok_edycja on public.ess_wyrok;
 create policy wyrok_edycja on public.ess_wyrok for update to authenticated

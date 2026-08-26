@@ -47,8 +47,8 @@
         '<div><div class="hint">Uprawnienia</div><div style="margin-top:2px">' +
           (j.admin ? '<span class="tag admin">Administrator</span>' : '') +
           (j.pseoAdmin && !j.admin ? '<span class="tag pseo">Admin PSEO</span>' : '') +
-          (j.sad ? '<span class="tag sedzia">' + esc(E.NAZWY_SADOW[j.sad]) + '</span>' : '') +
-          (!j.admin && !j.pseoAdmin && !j.sad ? '<span class="chip">Obywatel</span>' : '') +
+          (j.sady || []).map(s => '<span class="tag sedzia">' + esc(E.NAZWY_SADOW[s]) + '</span>').join('') +
+          (!j.admin && !j.pseoAdmin && !(j.sady && j.sady.length) ? '<span class="chip">Obywatel</span>' : '') +
         '</div></div>' +
       '</div>' +
       '<div style="margin-top:16px"><button class="btn ghost sm" id="zmien-imie">Zmień imię</button></div>' +

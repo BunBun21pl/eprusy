@@ -71,7 +71,8 @@
       id: u.user.id, email: u.user.email,
       imie: (p && p.imie) || (u.user.email || '').split('@')[0],
       pni: p && p.pni, admin: !!(p && p.admin_serwisu),
-      pseoAdmin: !!(p && (p.pseo_admin || p.admin_serwisu)), sad: p && p.sad
+      pseoAdmin: !!(p && (p.pseo_admin || p.admin_serwisu)),
+      sady: (p && p.sady) || []
     };
   }
   E.pobierzProfil = pobierzProfil;
@@ -80,7 +81,7 @@
   E.zalogowany = () => !!E.ja;
   E.jestAdmin = () => !!(E.ja && E.ja.admin);
   E.jestPseoAdmin = () => !!(E.ja && E.ja.pseoAdmin);
-  E.jestSedzia = () => !!(E.ja && E.ja.sad);
+  E.jestSedzia = () => !!(E.ja && E.ja.sady && E.ja.sady.length);
 
   /* ============================================================
      UI: pasek konta w nagłówku
@@ -93,9 +94,9 @@
       return;
     }
     const j = E.ja;
+    const tagiSad = (j.sady || []).map(s => '<span class="tag sedzia">' + esc(NAZWY_SADOW[s] || 'Sędzia') + '</span>').join('');
     const tagi = (j.admin ? '<span class="tag admin">Administrator</span>' : '') +
-      (j.pseoAdmin && !j.admin ? '<span class="tag pseo">Admin PSEO</span>' : '') +
-      (j.sad ? '<span class="tag sedzia">' + esc(NAZWY_SADOW[j.sad] || 'Sędzia') + '</span>' : '');
+      (j.pseoAdmin && !j.admin ? '<span class="tag pseo">Admin PSEO</span>' : '') + tagiSad;
     box.innerHTML =
       '<button class="acct-btn" id="ep-acct"><span class="av">' + esc(inicjaly(j.imie)) + '</span>' +
       '<span>' + esc((j.imie || '').split(' ')[0] || 'Konto') + '</span></button>' +

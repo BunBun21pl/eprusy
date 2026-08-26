@@ -114,8 +114,22 @@ W Systemie Administratora (`admin.html`, zakładka „Użytkownicy”) zaznaczas
 
 - **Administrator** — pełny dostęp, w tym nadawanie uprawnień innym.
 - **Admin PSEO** — zarządza Egzaminami Obywatelskimi (pytania, klucze, ocena).
-- **Sędzia — sąd** — nadaje uprawnienia sędziego wybranego sądu (rejonowy,
-  okręgowy, apelacyjny, wojskowy, najwyższy, Trybunał Konstytucyjny, Trybunał Stanu).
+- **Sędzia — sądy** — zaznaczasz (checkboxami) **wszystkie sądy**, w których dana
+  osoba może wydawać wyroki: rejonowy, okręgowy, apelacyjny, wojskowy, najwyższy,
+  Trybunał Konstytucyjny, Trybunał Stanu. Jedna osoba może orzekać w kilku sądach.
+
+## Sądownictwo (ESS)
+
+Sędzia (użytkownik z przypisanymi sądami) wydaje wyroki z panelu sędziego. Formularz
+odwzorowuje wzór procesowy: sąd/trybunał (tylko te, do których ma uprawnienia),
+nazwa orzekającego sądu, miejscowość i data, sygnatura akt (z przyciskiem
+„Generuj sygnaturę”), przedmiot sprawy, strony, status orzeczenia, skład orzekający,
+**sentencja rozbita na numerowane punkty** (przycisk „Dodaj punkt”) oraz osobne
+**uzasadnienie**. Każdy wyrok publikowany jest **w imieniu Republiki Pruskiej**.
+
+Na stronie głównej modułu wyroki są pogrupowane: sądy powszechne (rejonowy,
+okręgowy, wojskowy), sądy apelacyjne, Sąd Najwyższy, Trybunał Konstytucyjny i
+Trybunał Stanu. Wyroki czyta każdy, także niezalogowany.
 
 ## Egzaminy (PSEO)
 
@@ -127,13 +141,6 @@ Egzamin ma trzy części: **pisemną**, **ustną** i **ustawodawczą**.
 - Części ustną i ustawodawczą **wpisuje admin** w panelu.
 - Wyniki są ukryte dla zdającego, dopóki admin nie kliknie **„Zapisz i ujawnij”**.
 - Progi zdania: **pisemny ≥ 90%**, **ustny ≥ 60%**, **ustawodawczy ≥ 75%**.
-
-## Sądownictwo (ESS)
-
-Sędzia (użytkownik z przypisanym sądem) publikuje wyroki z panelu sędziego. Na
-stronie głównej modułu wyroki są pogrupowane: sądy powszechne (rejonowy, okręgowy,
-wojskowy), sądy apelacyjne, Sąd Najwyższy, Trybunał Konstytucyjny i Trybunał Stanu.
-Wyroki czyta każdy, także niezalogowany.
 
 ---
 

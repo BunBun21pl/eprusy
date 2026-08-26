@@ -63,8 +63,8 @@
     const { data, error } = await E.sb.from('profil').select('*').order('utworzono', { ascending: true });
     if (error) { box.innerHTML = '<div class="note err">' + esc(E.tlumacz(error)) + '</div>'; return; }
     box.innerHTML = '<div class="card"><h3>Użytkownicy (' + (data || []).length + ')</h3>' +
-      '<p class="hint" style="margin-top:0">Zaznacz uprawnienia i wybierz sąd dla sędziów. Zmiany zapisują się natychmiast.</p>' +
-      '<div class="tbl-scroll"><table><thead><tr><th>Użytkownik</th><th>PNI</th><th>Administrator</th><th>Admin PSEO</th><th>Sędzia — sąd</th></tr></thead><tbody>' +
+      '<p class="hint" style="margin-top:0">Zaznacz uprawnienia i wybierz sądy, w których dana osoba może wydawać wyroki. Zmiany zapisują się natychmiast.</p>' +
+      '<div class="tbl-scroll"><table><thead><tr><th>Użytkownik</th><th>PNI</th><th>Administrator</th><th>Admin PSEO</th><th>Sędzia — sądy (zaznacz)</th></tr></thead><tbody>' +
       (data || []).map(u => wiersz(u)).join('') + '</tbody></table></div></div>';
 
     box.querySelectorAll('tr[data-uid]').forEach(tr => {
@@ -76,20 +76,24 @@
       };
       tr.querySelector('.c-admin').onchange = e => zapisz({ admin_serwisu: e.target.checked });
       tr.querySelector('.c-pseo').onchange = e => zapisz({ pseo_admin: e.target.checked });
-      tr.querySelector('.c-sad').onchange = e => zapisz({ sad: e.target.value || null });
+      tr.querySelectorAll('.c-sad').forEach(chk => chk.onchange = () => {
+        const sady = Array.from(tr.querySelectorAll('.c-sad')).filter(c => c.checked).map(c => c.value);
+        zapisz({ sady });
+      });
     });
   }
 
   function wiersz(u) {
     const sam = u.id === E.ja.id;
-    const opcje = '<option value="">— nie —</option>' + Object.keys(N).map(s =>
-      '<option value="' + s + '"' + (u.sad === s ? ' selected' : '') + '>' + N[s] + '</option>').join('');
+    const posiada = u.sady || [];
+    const checkboxy = Object.keys(N).map(s =>
+      '<label class="sad-chk"><input type="checkbox" class="c-sad" value="' + s + '"' + (posiada.indexOf(s) >= 0 ? ' checked' : '') + '> ' + esc(N[s]) + '</label>').join('');
     return '<tr data-uid="' + u.id + '">' +
       '<td><b>' + esc(u.imie || '—') + '</b><div class="hint">' + esc(u.email || '') + (sam ? ' · to Ty' : '') + '</div></td>' +
       '<td><span class="kod">' + esc(u.pni || '—') + '</span></td>' +
       '<td><input type="checkbox" class="c-admin" style="width:auto"' + (u.admin_serwisu ? ' checked' : '') + (sam ? ' title="Nie odbieraj uprawnień samemu sobie"' : '') + '></td>' +
       '<td><input type="checkbox" class="c-pseo" style="width:auto"' + (u.pseo_admin ? ' checked' : '') + '></td>' +
-      '<td><select class="c-sad" style="min-width:170px">' + opcje + '</select></td>' +
+      '<td><div class="sad-grid">' + checkboxy + '</div></td>' +
       '</tr>';
   }
 
