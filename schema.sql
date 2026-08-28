@@ -362,6 +362,83 @@ create policy akt_usun on public.ess_akt for delete to authenticated
   using (public.jestem_adminem() or prokurator = auth.uid());
 
 -- ============================================================
+--  9. Elektroniczny Portal Wyborczy
+-- ============================================================
+do $$ begin
+  create type public.typ_wyborow as enum ('referendum', 'prezydenckie', 'samorzadowe', 'parlamentarne');
+exception when duplicate_object then null; end $$;
+do $$ begin
+  create type public.status_wyborow as enum ('przygotowanie', 'trwa', 'zakonczone');
+exception when duplicate_object then null; end $$;
+
+create table if not exists public.wybory (
+  id        uuid primary key default gen_random_uuid(),
+  tytul     text not null,
+  typ       public.typ_wyborow not null,
+  miasto    text,                         -- dla wyborów samorządowych
+  opcje     jsonb not null default '{}'::jsonb,  -- pytania/kandydaci/komitety (zależnie od typu)
+  status    public.status_wyborow not null default 'przygotowanie',
+  autor     uuid references public.profil(id) on delete set null,
+  utworzono timestamptz not null default now()
+);
+
+-- Fakt oddania głosu (zapobiega podwójnemu głosowaniu). Nie zawiera treści głosu.
+create table if not exists public.wybory_udzial (
+  wybory    uuid not null references public.wybory(id) on delete cascade,
+  wyborca   uuid not null references public.profil(id) on delete cascade,
+  utworzono timestamptz not null default now(),
+  primary key (wybory, wyborca)
+);
+
+-- Anonimowy głos. Nie zawiera informacji, kto go oddał.
+create table if not exists public.wybory_glos (
+  id        uuid primary key default gen_random_uuid(),
+  wybory    uuid not null references public.wybory(id) on delete cascade,
+  wybor     jsonb not null,
+  utworzono timestamptz not null default now()
+);
+create index if not exists idx_glos_wybory on public.wybory_glos (wybory);
+
+-- Oddanie głosu: atomowo zapisuje udział (kto) i anonimowy głos (co), bez ich łączenia.
+create or replace function public.oddaj_glos(wybory_id uuid, wybor_in jsonb)
+returns jsonb language plpgsql security definer set search_path = public
+as $$
+declare uid uuid := auth.uid(); w public.wybory%rowtype;
+begin
+  if uid is null then return jsonb_build_object('ok', false, 'blad', 'Brak zalogowania.'); end if;
+  select * into w from public.wybory where id = wybory_id;
+  if not found then return jsonb_build_object('ok', false, 'blad', 'Nie znaleziono wyborów.'); end if;
+  if w.status <> 'trwa' then return jsonb_build_object('ok', false, 'blad', 'Głosowanie nie jest aktywne.'); end if;
+  if exists (select 1 from public.wybory_udzial where wybory = wybory_id and wyborca = uid) then
+    return jsonb_build_object('ok', false, 'blad', 'Głos w tych wyborach został już przez Ciebie oddany.');
+  end if;
+  insert into public.wybory_udzial (wybory, wyborca) values (wybory_id, uid);
+  insert into public.wybory_glos (wybory, wybor) values (wybory_id, wybor_in);
+  return jsonb_build_object('ok', true);
+end $$;
+
+alter table public.wybory        enable row level security;
+alter table public.wybory_udzial enable row level security;
+alter table public.wybory_glos   enable row level security;
+
+-- Wybory: widzi każdy zalogowany; zarządza wyłącznie administrator.
+drop policy if exists wybory_odczyt on public.wybory;
+create policy wybory_odczyt on public.wybory for select to authenticated using (true);
+drop policy if exists wybory_admin on public.wybory;
+create policy wybory_admin on public.wybory for all to authenticated
+  using (public.jestem_adminem()) with check (public.jestem_adminem());
+
+-- Udział: użytkownik widzi tylko własny (by wiedzieć, że już głosował); admin widzi frekwencję.
+drop policy if exists udzial_ja on public.wybory_udzial;
+create policy udzial_ja on public.wybory_udzial for select to authenticated
+  using (wyborca = auth.uid() or public.jestem_adminem());
+
+-- Głosy: czyta wyłącznie administrator (wyniki). Zapis tylko przez funkcję oddaj_glos.
+drop policy if exists glos_admin on public.wybory_glos;
+create policy glos_admin on public.wybory_glos for select to authenticated
+  using (public.jestem_adminem());
+
+-- ============================================================
 --  Gdyby trzeba było ręcznie nadać sobie administratora:
 --  update public.profil set admin_serwisu = true where email = 'twoj@email.pl';
 -- ============================================================

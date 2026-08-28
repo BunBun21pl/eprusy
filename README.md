@@ -151,6 +151,26 @@ Egzamin ma trzy części: **pisemną**, **ustną** i **ustawodawczą**.
 
 ---
 
+## Portal wyborczy
+
+Dostępny z trybu obywatela (kafel „Elektroniczny Portal Wyborczy”). Ma dwie części:
+
+**Panel administratora** (dla administratorów) — tworzenie wyborów i wybór typu:
+- **Referendum** — pytania i odpowiedzi (dowolnie wiele).
+- **Wybory prezydenckie** — kandydaci (opcjonalnie z komitetem).
+- **Wybory samorządowe** — miasto oraz kandydaci na Prezydenta miasta wraz z komitetami.
+- **Wybory parlamentarne** — komitety wyborcze.
+
+Administrator zarządza cyklem: **Rozpocznij głosowanie** → **Zatrzymaj głosowanie**,
+a po zatrzymaniu widzi **wyniki** (słupki z liczbą i procentem głosów, dla referendum
+w rozbiciu na pytania).
+
+**Głosowanie** (dla wyborców) — lista aktywnych wyborów. Aby oddać głos, wyborca
+potwierdza tożsamość **hasłem do konta** oraz **swoim numerem PNI**, a następnie
+akceptuje oświadczenie, że głos jest ostateczny. **Głos jest tajny i jednorazowy:**
+fakt oddania głosu i jego treść zapisywane są w osobnych tabelach, więc nie da się
+ustalić, kto jak zagłosował, a raz oddanego głosu nie można powtórzyć ani zmienić.
+
 ## Bezpieczeństwo — o czym pamiętać
 
 - Zmień **wszystkie** domyślne hasła i klucze w `.env` Supabase.
@@ -164,12 +184,12 @@ Egzamin ma trzy części: **pisemną**, **ustną** i **ustawodawczą**.
 ## Pliki
 
 ```
-index.html  pseo.html  ess.html  admin.html
+index.html  pseo.html  ess.html  wybory.html  admin.html
 config.js               ← adres i klucz anon (jedyny plik do edycji)
 schema.sql              ← struktura bazy (uruchom w SQL Editor)
 css/styl.css
 js/wspolne.js           ← logowanie, rejestracja, uprawnienia, UI
-js/index.js  js/pseo.js  js/ess.js  js/admin.js
+js/index.js  js/pseo.js  js/ess.js  js/wybory.js  js/admin.js
 js/vendor/supabase.js   ← biblioteka Supabase (lokalnie, bez CDN)
 assets/                 ← logo, favicon
 .nojekyll
