@@ -439,6 +439,95 @@ create policy glos_admin on public.wybory_glos for select to authenticated
   using (public.jestem_adminem());
 
 -- ============================================================
+--  10. Symulator sądowy (AI)
+-- ============================================================
+-- Źródło prawa dla generatora spraw (zasilane przez seed-prawo.sql).
+create table if not exists public.sim_prawo (
+  id        uuid primary key default gen_random_uuid(),
+  kodeks    text not null,
+  dziedzina text not null default 'karny',   -- 'karny' | 'cywilny'
+  kolejnosc int  not null default 0,
+  tresc     text not null
+);
+
+do $$ begin create type public.sim_status as enum ('rozprawa', 'zakonczona'); exception when duplicate_object then null; end $$;
+
+-- Sprawa (część jawna — widoczna dla sędziego prowadzącego).
+create table if not exists public.sim_sprawa (
+  id         uuid primary key default gen_random_uuid(),
+  sedzia     uuid references public.profil(id) on delete cascade,
+  sad        public.sad,
+  tytul      text,
+  sygnatura  text,
+  opis       text,                          -- stan faktyczny (jawny)
+  oskarzony  text,
+  zarzuty    jsonb not null default '[]'::jsonb,   -- [{czyn, kwalifikacja}]
+  swiadkowie jsonb not null default '[]'::jsonb,   -- [{imie, rola}]
+  dowody     jsonb not null default '[]'::jsonb,   -- [tekst]
+  status     public.sim_status not null default 'rozprawa',
+  wyrok      jsonb,                         -- {rozstrzygniecie, uzasadnienie, ocena}
+  utworzono  timestamptz not null default now()
+);
+create index if not exists idx_sim_sprawa_sedzia on public.sim_sprawa (sedzia, utworzono desc);
+
+-- Sekret sprawy: „co się naprawdę wydarzyło” + wiedza świadków. Czyta go WYŁĄCZNIE
+-- funkcja serwerowa (service role). Brak polityk RLS = niedostępne dla klienta.
+create table if not exists public.sim_sekret (
+  sprawa uuid primary key references public.sim_sprawa(id) on delete cascade,
+  tresc  jsonb not null
+);
+
+-- Transkrypt rozprawy.
+create table if not exists public.sim_wpis (
+  id        uuid primary key default gen_random_uuid(),
+  sprawa    uuid not null references public.sim_sprawa(id) on delete cascade,
+  rola      text not null,                  -- 'sedzia' | 'swiadek' | 'oskarzony' | 'system'
+  mowca     text,
+  tresc     text not null,
+  utworzono timestamptz not null default now()
+);
+create index if not exists idx_sim_wpis_sprawa on public.sim_wpis (sprawa, utworzono);
+
+-- Dzienny licznik spraw sędziego (limit egzekwowany przez funkcję serwerową).
+create table if not exists public.sim_licznik (
+  sedzia uuid not null references public.profil(id) on delete cascade,
+  dzien  date not null,
+  liczba int  not null default 0,
+  primary key (sedzia, dzien)
+);
+
+alter table public.sim_prawo   enable row level security;
+alter table public.sim_sprawa  enable row level security;
+alter table public.sim_sekret  enable row level security;   -- brak polityk = tylko service role
+alter table public.sim_wpis    enable row level security;
+alter table public.sim_licznik enable row level security;
+
+-- Prawo: czyta każdy zalogowany; edytuje administrator.
+drop policy if exists prawo_odczyt on public.sim_prawo;
+create policy prawo_odczyt on public.sim_prawo for select to authenticated using (true);
+drop policy if exists prawo_admin on public.sim_prawo;
+create policy prawo_admin on public.sim_prawo for all to authenticated
+  using (public.jestem_adminem()) with check (public.jestem_adminem());
+
+-- Sprawy: sędzia widzi i zarządza wyłącznie swoimi (zapisuje je funkcja serwerowa).
+drop policy if exists sprawa_ja on public.sim_sprawa;
+create policy sprawa_ja on public.sim_sprawa for select to authenticated
+  using (sedzia = auth.uid() or public.jestem_adminem());
+drop policy if exists sprawa_usun on public.sim_sprawa;
+create policy sprawa_usun on public.sim_sprawa for delete to authenticated
+  using (sedzia = auth.uid() or public.jestem_adminem());
+
+-- Transkrypt: widoczny dla sędziego prowadzącego sprawę.
+drop policy if exists wpis_ja on public.sim_wpis;
+create policy wpis_ja on public.sim_wpis for select to authenticated
+  using (exists (select 1 from public.sim_sprawa s where s.id = sprawa and (s.sedzia = auth.uid() or public.jestem_adminem())));
+
+-- Licznik: sędzia widzi własny (by znać pozostały limit).
+drop policy if exists licznik_ja on public.sim_licznik;
+create policy licznik_ja on public.sim_licznik for select to authenticated
+  using (sedzia = auth.uid() or public.jestem_adminem());
+
+-- ============================================================
 --  Gdyby trzeba było ręcznie nadać sobie administratora:
 --  update public.profil set admin_serwisu = true where email = 'twoj@email.pl';
 -- ============================================================

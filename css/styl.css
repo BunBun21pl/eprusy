@@ -193,6 +193,19 @@ footer{border-top:1px solid var(--line);margin-top:44px}
 .wynik-bar{height:10px;background:#0A1826;border:1px solid var(--line);border-radius:6px;overflow:hidden}
 .wynik-bar span{display:block;height:100%;background:linear-gradient(90deg,var(--cyan-dk),var(--cyan));border-radius:6px}
 .n-dyn input{width:100%}
+
+/* ---------- symulator sądowy ---------- */
+.sim-row{display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap;padding:10px 0;border-bottom:1px solid var(--line-so)}
+.sim-row:last-child{border-bottom:none}
+.akta-lista{margin:6px 0;padding-left:22px}
+.akta-lista li{margin:6px 0}
+.transkrypt{max-height:440px;overflow-y:auto;display:flex;flex-direction:column;gap:10px;padding:4px 2px}
+.t-sys{text-align:center;font-size:12px;color:var(--mut);font-style:italic;padding:4px 0}
+.t-wiersz{max-width:82%;padding:10px 13px;border-radius:12px;border:1px solid var(--line)}
+.t-sedzia-w{align-self:flex-end;background:rgba(224,180,75,.12);border-color:rgba(224,180,75,.4)}
+.t-osoba{align-self:flex-start;background:var(--panel-2)}
+.t-kto{font-size:11px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--mut);margin-bottom:4px}
+.t-tresc{white-space:pre-wrap;line-height:1.55}
 .sad-grid{display:grid;grid-template-columns:1fr 1fr;gap:4px 14px;min-width:320px}
 .sad-chk{display:flex;align-items:center;gap:7px;font-size:12.5px;color:var(--ink);cursor:pointer;white-space:nowrap}
 .sad-chk input{width:auto}

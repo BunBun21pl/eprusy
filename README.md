@@ -171,6 +171,49 @@ akceptuje oświadczenie, że głos jest ostateczny. **Głos jest tajny i jednora
 fakt oddania głosu i jego treść zapisywane są w osobnych tabelach, więc nie da się
 ustalić, kto jak zagłosował, a raz oddanego głosu nie można powtórzyć ani zmienić.
 
+## Symulator sądowy (AI) — konfiguracja
+
+Symulator pozwala sędziom generować sprawy karne zgodne z prawem Republiki
+Pruskiej, przesłuchiwać świadków i oskarżonego (odgrywanych przez AI) oraz wydawać
+wyroki z oceną dydaktyczną. To tryb ćwiczeniowy — nie trafia do oficjalnego rejestru.
+
+Klucz do modelu **nigdy nie trafia do przeglądarki** — trzyma go funkcja serwerowa
+(Edge Function) Twojego Supabase.
+
+**1. Wgraj prawo do bazy.** W SQL Editor uruchom `seed-prawo.sql` (po `schema.sql`).
+Wgrywa 7 kodeksów Ksiąg Prawa. Aktualizacja prawa = uruchom ten plik ponownie
+(podmienia zawartość). Kodeksy karne stanowią kontekst generatora spraw.
+
+**2. Zainstaluj Supabase CLI** (jednorazowo): instrukcja na
+`https://supabase.com/docs/guides/cli`. Zaloguj się: `supabase login`.
+
+**3. Wdróż funkcję.** W katalogu projektu (obok folderu `supabase/`):
+
+```bash
+supabase functions deploy symulator --project-ref TWOJ_REF
+```
+
+`TWOJ_REF` to identyfikator projektu (Project Settings → General). Dla self-hosted
+Supabase funkcje uruchamiasz w usłudze `functions` z docker-compose — wgraj katalog
+`supabase/functions/symulator` do woluminu funkcji.
+
+**4. Ustaw sekrety funkcji** (klucz Gemini nigdy nie jest w kodzie):
+
+```bash
+supabase secrets set GEMINI_KEY=twoj_darmowy_klucz_z_ai_studio --project-ref TWOJ_REF
+# opcjonalnie:
+supabase secrets set GEMINI_MODEL=gemini-2.5-flash --project-ref TWOJ_REF
+supabase secrets set SIM_LIMIT_DZIENNY=2 --project-ref TWOJ_REF
+```
+
+Darmowy klucz Gemini utworzysz w Google AI Studio (`https://aistudio.google.com/apikey`).
+Limit `2` spraw na sędziego dziennie mieści się w darmowym progu i chroni przed
+nadużyciem — zmienisz go w każdej chwili tą samą komendą.
+
+Po wdrożeniu zakładka **Symulator sądowy** w module Sądownictwo działa dla każdego
+z uprawnieniem sędziego. Limit dzienny i uprawnienia egzekwuje serwer — nie da się
+ich obejść z przeglądarki.
+
 ## Bezpieczeństwo — o czym pamiętać
 
 - Zmień **wszystkie** domyślne hasła i klucze w `.env` Supabase.
@@ -187,9 +230,11 @@ ustalić, kto jak zagłosował, a raz oddanego głosu nie można powtórzyć ani
 index.html  pseo.html  ess.html  wybory.html  admin.html
 config.js               ← adres i klucz anon (jedyny plik do edycji)
 schema.sql              ← struktura bazy (uruchom w SQL Editor)
+seed-prawo.sql          ← treść Ksiąg Prawa do symulatora (uruchom po schema.sql)
+supabase/functions/symulator/index.ts  ← funkcja serwerowa symulatora (Gemini)
 css/styl.css
 js/wspolne.js           ← logowanie, rejestracja, uprawnienia, UI
-js/index.js  js/pseo.js  js/ess.js  js/wybory.js  js/admin.js
+js/index.js  js/pseo.js  js/ess.js  js/symulator.js  js/wybory.js  js/admin.js
 js/vendor/supabase.js   ← biblioteka Supabase (lokalnie, bez CDN)
 assets/                 ← logo, favicon
 .nojekyll
