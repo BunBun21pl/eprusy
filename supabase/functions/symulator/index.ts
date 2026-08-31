@@ -11,8 +11,8 @@
 // ============================================================
 import { createClient } from "jsr:@supabase/supabase-js@2";
 
-const KEY = Deno.env.get("GEMINI_KEY") ?? "";
-const MODEL = Deno.env.get("GEMINI_MODEL") ?? "gemini-2.5-flash";
+const KEY = (Deno.env.get("GEMINI_KEY") ?? "").trim();
+const MODEL = (Deno.env.get("GEMINI_MODEL") ?? "gemini-2.5-flash").trim();
 const LIMIT = parseInt(Deno.env.get("SIM_LIMIT_DZIENNY") ?? "2", 10);
 const SB_URL = Deno.env.get("SUPABASE_URL")!;
 const SB_SERVICE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -29,41 +29,56 @@ function json(body: unknown, status = 200) {
 
 async function gemini(prompt: string, jsonOut = false): Promise<string> {
   if (!KEY) throw new Error("Brak klucza GEMINI_KEY na serwerze.");
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${KEY}`;
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent`;
   const body: Record<string, unknown> = {
     contents: [{ role: "user", parts: [{ text: prompt }] }],
-    generationConfig: { temperature: 0.9, maxOutputTokens: 2048, ...(jsonOut ? { responseMimeType: "application/json" } : {}) },
+    generationConfig: {
+      temperature: 0.9,
+      maxOutputTokens: jsonOut ? 8192 : 1024,
+      ...(jsonOut ? { responseMimeType: "application/json" } : {}),
+    },
   };
-  const r = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
-  if (!r.ok) throw new Error("Gemini API: " + r.status + " " + (await r.text()).slice(0, 300));
+  const r = await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "x-goog-api-key": KEY },
+    body: JSON.stringify(body),
+  });
+  if (!r.ok) throw new Error("Gemini API [" + MODEL + "]: " + r.status + " " + (await r.text()).slice(0, 300));
   const d = await r.json();
-  const txt = d?.candidates?.[0]?.content?.parts?.map((p: { text?: string }) => p.text ?? "").join("") ?? "";
-  if (!txt) throw new Error("Pusta odpowiedź modelu.");
+  const cand = d?.candidates?.[0];
+  const txt = cand?.content?.parts?.map((p: { text?: string }) => p.text ?? "").join("") ?? "";
+  if (!txt) {
+    const powod = cand?.finishReason ?? d?.promptFeedback?.blockReason ?? "brak treści";
+    throw new Error("Model nie zwrócił treści (" + powod + "). Spróbuj ponownie.");
+  }
+  if (cand?.finishReason === "MAX_TOKENS") throw new Error("Odpowiedź modelu została ucięta (limit tokenów). Spróbuj ponownie.");
   return txt;
 }
 
 function parseJSON(txt: string): any {
-  try { return JSON.parse(txt); } catch (_) {
-    const m = txt.match(/\{[\s\S]*\}/);
-    if (m) return JSON.parse(m[0]);
-    throw new Error("Model nie zwrócił poprawnego JSON.");
+  let s = txt.trim().replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/i, "").trim();
+  try { return JSON.parse(s); } catch (_) {
+    const a = s.indexOf("{"), b = s.lastIndexOf("}");
+    if (a >= 0 && b > a) { try { return JSON.parse(s.slice(a, b + 1)); } catch (_) { /* niżej */ } }
+    throw new Error("Model nie zwrócił poprawnego JSON. Początek odpowiedzi: " + s.slice(0, 200));
   }
 }
+
+
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: CORS });
   try {
     const auth = req.headers.get("Authorization") ?? "";
-    if (!auth) return json({ ok: false, blad: "Brak autoryzacji." }, 401);
+    const token = auth.replace(/^Bearer\s+/i, "").trim();
+    if (!token) return json({ ok: false, blad: "Brak autoryzacji." }, 401);
 
-    // klient „jako użytkownik” — do sprawdzenia tożsamości
-    const asUser = createClient(SB_URL, Deno.env.get("SUPABASE_ANON_KEY")!, { global: { headers: { Authorization: auth } } });
-    const { data: u } = await asUser.auth.getUser();
-    if (!u?.user) return json({ ok: false, blad: "Nieprawidłowa sesja." }, 401);
+    // klient service role — do weryfikacji tożsamości i uprzywilejowanych operacji
+    const svc = createClient(SB_URL, SB_SERVICE);
+    const { data: u, error: eAuth } = await svc.auth.getUser(token);
+    if (eAuth || !u?.user) return json({ ok: false, blad: "Nieprawidłowa sesja." }, 401);
     const uid = u.user.id;
 
-    // klient service role — do uprzywilejowanych operacji
-    const svc = createClient(SB_URL, SB_SERVICE);
     const { data: prof } = await svc.from("profil").select("imie, sady, admin_serwisu").eq("id", uid).maybeSingle();
     const sady: string[] = prof?.sady ?? [];
     if (!sady.length && !prof?.admin_serwisu) return json({ ok: false, blad: "Symulator jest dostępny tylko dla sędziów." }, 403);
