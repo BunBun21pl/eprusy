@@ -18,7 +18,18 @@
 
   async function wywolaj(body) {
     if (E.trybDemo) return { data: { ok: false, blad: 'Tryb demonstracyjny — symulator wymaga podłączonej funkcji.' } };
-    return await E.sb.functions.invoke('symulator', { body });
+    const res = await E.sb.functions.invoke('symulator', { body });
+    // supabase-js zwraca ogólny błąd przy statusie != 2xx — wyciągnij prawdziwy komunikat z treści
+    if (res.error) {
+      let blad = res.error.message || 'Błąd funkcji symulatora.';
+      try {
+        const ctx = res.error.context;
+        if (ctx && typeof ctx.json === 'function') { const b = await ctx.json(); if (b && b.blad) blad = b.blad; }
+        else if (ctx && typeof ctx.text === 'function') { const t = await ctx.text(); if (t) { try { const b = JSON.parse(t); if (b.blad) blad = b.blad; } catch (_) { blad = t.slice(0, 300); } } }
+      } catch (_) { /* zostaw ogólny komunikat */ }
+      return { data: { ok: false, blad } };
+    }
+    return res;
   }
 
   /* ---------- lista spraw + generowanie ---------- */
